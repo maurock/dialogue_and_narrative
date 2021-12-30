@@ -15,24 +15,7 @@ import time
 import numpy as np
 import pandas as pd
 import torch
-
-
-def text_from_spans(search_domain, search_doc_id, search_id_sp, document_dataset):
-    start = time.time()
-    total_answer = ''
-    for doc in document_dataset:
-        if doc['domain'] == search_domain and doc['doc_id'] == search_doc_id:
-            for span in doc['spans']:
-                if span['id_sp'] in search_id_sp:
-                    total_answer+=span['text_sp']
-            break
-    print(f"Time elapsed: {time.time() - start}")
-    return total_answer
-
-def ch_to_tok(embedding, char_pos):
-    "Converting from character-position to token-position"
-    return embedding.char_to_token(char_pos)
-    
+import utils
 
 split = "train"
 cache_dir = "./data_cache"
@@ -71,7 +54,7 @@ tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
 
 start = time.time()
 for idx, dialogue in tqdm(enumerate(dialogue_dataset)):
-    if idx == 100:
+    if idx == 10:
         break
     dial_id_turn_id = []       # running list of <dial_id>_<turn_id> for evaluation
     sp_id_list = []            # running list of spans per document
@@ -119,7 +102,7 @@ for idx, dialogue in tqdm(enumerate(dialogue_dataset)):
                 # convert start_pos to start_token
                 start_tok_pos = doc['doc_text'].char_to_token(start_pos)
                 start_tok_list.append(start_tok_pos)
-                
+                # convert end_pos to end_token
                 end_pos = np.amax(ref_end_pos_list)
                 end_sp_list.append(end_pos)
                 end_tok_pos = doc['doc_text'].char_to_token(end_pos)
@@ -135,33 +118,4 @@ end = time.time()
 print(f'Total time: {end-start}')
 
 data = pd.DataFrame(train_dict)
-
-print('User utterances:')
-print(train_dict['train_user_utterance'][0])
-
-print('\nID Sp:')
-print(train_dict['train_id_sp'][0])
-
-print('\nDoc ID:')
-print(train_dict['train_doc_id'][0])
-
-print('\nDoc domain:')
-print(train_dict['train_doc_domain'][0])
-
-print('\nTrain text spans:')
-print(train_dict['train_text_sp'][0])
-
-print('\nDial_ID Turn_ID:')
-print(train_dict['train_dial_id_turn_id'][0])
-
-print('\nStart span pos:')
-print(train_dict['train_start_pos'][0])
-
-print('\nEnd span pos:')
-print(train_dict['train_end_pos'][0])
-
-print('\nStart span token:')
-print(train_dict['train_start_tok'][0])
-
-print('\nEnd span token:')
-print(train_dict['train_end_tok'][0])
+utils.print_train_dict(train_dict)
